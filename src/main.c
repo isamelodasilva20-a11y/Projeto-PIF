@@ -7,16 +7,13 @@
 #include "itens.h"
 #include "professor.h"
 
-
-
 int main(void) {
     InitWindow(1024, 640, "Blackout");
     SetTargetFPS(60);
 
-    Jogo jogo = {0}; //estado do jogo
+    Jogo jogo = {0}; // estado do jogo
 
-    // Comeca no andar 1. O mapa, a posicao do jogador ('P'), as baterias ('I')
-    // e a escada ('S') vem todos do proprio arquivo andares/andar1.txt
+    // Começa no andar 1.
     if (!mapaCarregarAndar(&jogo, 1)) {
         CloseWindow();
         return 1;
@@ -34,65 +31,57 @@ int main(void) {
             if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_ESQUERDA);
             if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_DIREITA);
 
-                coletar_item(&jogo.itens, &jogo.jogador);
+            coletar_item(&jogo.itens, &jogo.jogador);
 
-                if (verificar_interacao_professor(&jogo.jogador, &jogo.professor)) {
-                    jogo.telaAtual = TELA_QUIZ;
-                }
+            if (verificar_interacao_professor(&jogo.jogador, &jogo.professor)) {
+                jogo.telaAtual = TELA_QUIZ;
+            }
 
-                // --- Troca de andar ---
-                // Regra: so sobe quando a lista de baterias esta vazia E o jogador
-                // esta em cima da escada. Antes disso a escada nao faz nada.
-                int naEscada = jogo.jogador.posicao.linha == jogo.mapa.saida.linha &&
-                               jogo.jogador.posicao.coluna == jogo.mapa.saida.coluna;
+            // --- Troca de andar ---
+            int naEscada = (jogo.jogador.posicao.linha == jogo.mapa.saida.linha &&
+                            jogo.jogador.posicao.coluna == jogo.mapa.saida.coluna);
 
-                if(verificar_vitoria(jogo.itens)){
-                    if(jogo.andarAtual < TOTAL_ANDARES){
-                        // Ainda ha andares acima: carrega o proximo (se o arquivo falhar, encerra o jogo)
-                        if(!mapaCarregarAndar(&jogo, jogo.andarAtual + 1)) break;
-                    }else{
-                        // Subiu a escada do ultimo andar: fim de jogo
-                        venceu = 1;
-                    }
+            // Muda de andar apenas se o professor foi ajudado E o jogador subiu na escada
+            if (jogo.professor.ajudado && naEscada) {
+                if (jogo.andarAtual < TOTAL_ANDARES) {
+                    if (!mapaCarregarAndar(&jogo, jogo.andarAtual + 1)) break;
+                } else {
+                    venceu = 1;
                 }
             }
+        }
 
         acumuladorTempo += GetFrameTime();
         if (acumuladorTempo >= 0.05f) {
             acumuladorTempo -= 0.05f;
         }
 
-            BeginDrawing();
-                ClearBackground(BLACK);
-                desenharMapa2D(&jogo.mapa, 24);
-                desenharSaida2D(&jogo.mapa, 24, verificar_vitoria(jogo.itens)); // verde = liberada
-                desenharJogador2D(&jogo.jogador, 24);
-                desenhar_professor(&jogo.professor, 24);
-                desenhar_item(jogo.itens, 24);
+        BeginDrawing();
+            ClearBackground(BLACK);
+            desenharMapa2D(&jogo.mapa, 24);
+            desenharSaida2D(&jogo.mapa, 24, jogo.professor.ajudado); // verde = liberada pelo professor
+            desenharJogador2D(&jogo.jogador, 24);
+            desenhar_professor(&jogo.professor, 24);
+            desenhar_item(jogo.itens, 24);
 
-                // HUD na faixa abaixo do mapa (25 linhas * 24px = 600px, a janela tem 640px)
-                // Mostra o andar atual e quantas baterias faltam; quando zera, avisa para ir a escada
-                int restantes = contar_itens(jogo.itens);
-                if(restantes > 0){
-                    DrawText(TextFormat("Andar %d/%d   Baterias restantes: %d", jogo.andarAtual, TOTAL_ANDARES, restantes), 10, 610, 20, WHITE);
-                }else{
-                    DrawText(TextFormat("Andar %d/%d   Va ate a escada!", jogo.andarAtual, TOTAL_ANDARES), 10, 610, 20, GREEN);
-                }
+            // HUD na faixa abaixo do mapa
+            if (!jogo.professor.ajudado) {
+                DrawText(TextFormat("Andar %d/%d   Ajude o professor para liberar a saída!", jogo.andarAtual, TOTAL_ANDARES), 10, 610, 20, WHITE);
+            } else {
+                DrawText(TextFormat("Andar %d/%d   Professor ajudado! Vá até a escada!", jogo.andarAtual, TOTAL_ANDARES), 10, 610, 20, GREEN);
+            }
 
-                if (jogo.telaAtual == TELA_QUIZ)desenhar_quiz(&jogo);
+            if (jogo.telaAtual == TELA_QUIZ) desenhar_quiz(&jogo);
 
-                if(venceu){
-                    DrawRectangle(0, 0, 1024, 640, Fade(BLACK, 0.7f)); // Fundo semi-transparente
-                    DrawText("BACKUP CONCLUÍDO! TODOS OS PENDRIVES COLETADOS!", 200, 300, 30, GREEN);
-                    DrawText("Pressione ESC para sair", 380, 350, 20, WHITE);
-                }
+            if (venceu) {
+                DrawRectangle(0, 0, 1024, 640, Fade(BLACK, 0.7f));
+                DrawText("BACKUP CONCLUÍDO! TODOS OS ANDARES CONCLUÍDOS!", 180, 300, 30, GREEN);
+                DrawText("Pressione ESC para sair", 380, 350, 20, WHITE);
+            }
 
         EndDrawing();
     }
-    
 
-    // Libera o que sobrou do ultimo andar carregado (os anteriores ja foram
-    // liberados pelo mapaCarregarAndar a cada troca)
     liberar_todos_itens(&jogo.itens);
     mapaLiberar(&jogo.mapa);
 
