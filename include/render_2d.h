@@ -5,5 +5,7 @@
 
 void desenharMapa2D(Mapa *mapa, int tamanhoCasa);
 void desenharJogador2D(Jogador *jogador, int tamanhoCasa);
+// liberada = true quando todas as baterias ja foram coletadas (escada verde)
+void desenharSaida2D(Mapa *mapa, int tamanhoCasa, bool liberada);
 
 #endif

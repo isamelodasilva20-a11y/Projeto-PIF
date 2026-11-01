@@ -55,6 +55,15 @@ int verificar_vitoria(Item *itens){
     return(itens==NULL);
 }
 
+// Percorre a lista encadeada e conta quantos itens ainda faltam coletar (usado no HUD)
+int contar_itens(Item *itens){
+    int total = 0;
+    for(Item *atual = itens; atual != NULL; atual = atual->next){
+        total++;
+    }
+    return total;
+}
+
 void liberar_item(Item *itens){
     if(itens!=NULL){
         memLiberar(itens);

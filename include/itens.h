@@ -14,4 +14,7 @@ void liberar_todos_itens(Item **itens);
 void desenhar_item(Item *item, int tamanhoCasa);
 
 int verificar_vitoria(Item *itens);
+
+// Quantos itens ainda estao no mapa
+int contar_itens(Item *itens);
 #endif

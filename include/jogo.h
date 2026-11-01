@@ -17,7 +17,8 @@ typedef struct {
 typedef struct {
     int linhas;
     int colunas;
-    char **matriz;
+    char **matriz;     // matriz[linha][coluna]: '#' = parede, ' ' = andavel
+    Posicao saida;     // escada para o proximo andar ('S' no arquivo); linha -1 se o andar nao tiver
 } Mapa;
 
 typedef struct {

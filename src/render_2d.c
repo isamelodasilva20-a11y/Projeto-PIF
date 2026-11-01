@@ -24,3 +24,16 @@ void desenharJogador2D(Jogador *jogador, int tamanhoCasa) {
 
     DrawCircle((int)centroX, (int)centroY, raio, YELLOW);
 }
+
+// Desenha a escada (saida do andar) como um quadrado na casa do 'S'
+void desenharSaida2D(Mapa *mapa, int tamanhoCasa, bool liberada) {
+    if(mapa == NULL || mapa->saida.linha < 0) return; // andar sem escada
+
+    // Escada fica cinza enquanto ainda faltam baterias e verde quando o jogador pode subir
+    Color cor = liberada ? GREEN : DARKGRAY;
+
+    // Converte linha/coluna em pixels; o +2 / -4 deixa uma borda de 2px para o
+    // quadrado nao encostar nas paredes vizinhas
+    DrawRectangle(mapa->saida.coluna * tamanhoCasa + 2, mapa->saida.linha * tamanhoCasa + 2,
+                  tamanhoCasa - 4, tamanhoCasa - 4, cor);
+}
