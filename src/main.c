@@ -5,6 +5,7 @@
 #include "mapa.h"
 #include "memoria.h"
 #include "itens.h"
+#include "professor.h"
 
 
 
@@ -24,22 +25,28 @@ int main(void) {
     float acumuladorTempo = 0.0f;
     int venceu = 0;
 
-        while (!WindowShouldClose()) {
-            if(!venceu){
-                if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_CIMA);
-                if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_BAIXO);
-                if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_ESQUERDA);
-                if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_DIREITA);
+    inicializar_professor(&jogo.professor, (Posicao){ .linha = 5, .coluna = 10 }, "Prof. Thiaguinho", "Qual especificador imprime um int em C?\nA) %s  B) %d  C) %f", "B");
 
-                // Se o jogador pisou numa bateria, ela sai da lista
-                coletar_item(&jogo.itens, &jogo.jogador);
+    while (!WindowShouldClose()) {
+        if (!venceu && jogo.telaAtual == TELA_NORMAL) {
+            if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_CIMA);
+            if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_BAIXO);
+            if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_ESQUERDA);
+            if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_DIREITA);
+
+                coletar_item(&lista_itens, &jogo.jogador);
+
+                if (verificar_interacao_professor(&jogo.jogador, &jogo.professor)) {
+                    jogo.telaAtual = TELA_QUIZ;
+                }
 
                 // --- Troca de andar ---
                 // Regra: so sobe quando a lista de baterias esta vazia E o jogador
                 // esta em cima da escada. Antes disso a escada nao faz nada.
                 int naEscada = jogo.jogador.posicao.linha == jogo.mapa.saida.linha &&
                                jogo.jogador.posicao.coluna == jogo.mapa.saida.coluna;
-                if(verificar_vitoria(jogo.itens) && naEscada){
+
+                if(verificar_vitoria(lista_itens)){
                     if(jogo.andarAtual < TOTAL_ANDARES){
                         // Ainda ha andares acima: carrega o proximo (se o arquivo falhar, encerra o jogo)
                         if(!mapaCarregarAndar(&jogo, jogo.andarAtual + 1)) break;
@@ -50,18 +57,18 @@ int main(void) {
                 }
             }
 
-            acumuladorTempo += GetFrameTime();
-            if (acumuladorTempo >= 0.05f) {
-                acumuladorTempo -= 0.05f;
-            }
+        acumuladorTempo += GetFrameTime();
+        if (acumuladorTempo >= 0.05f) {
+            acumuladorTempo -= 0.05f;
+        }
 
             BeginDrawing();
                 ClearBackground(BLACK);
-                // Ordem de desenho: o que vem depois fica por cima
                 desenharMapa2D(&jogo.mapa, 24);
                 desenharSaida2D(&jogo.mapa, 24, verificar_vitoria(jogo.itens)); // verde = liberada
                 desenharJogador2D(&jogo.jogador, 24);
-                desenhar_item(jogo.itens, 24);
+                desenhar_professor(&jogo.professor, 24);
+                desenhar_item(lista_itens, 24);
 
                 // HUD na faixa abaixo do mapa (25 linhas * 24px = 600px, a janela tem 640px)
                 // Mostra o andar atual e quantas baterias faltam; quando zera, avisa para ir a escada
@@ -72,14 +79,16 @@ int main(void) {
                     DrawText(TextFormat("Andar %d/%d   Va ate a escada!", jogo.andarAtual, TOTAL_ANDARES), 10, 610, 20, GREEN);
                 }
 
+                if (jogo.telaAtual == TELA_QUIZ)desenhar_quiz(&jogo);
+
                 if(venceu){
                     DrawRectangle(0, 0, 1024, 640, Fade(BLACK, 0.7f)); // Fundo semi-transparente
-                    DrawText("VOCE VENCEU! TODOS OS ANDARES CONCLUIDOS!", 180, 300, 30, GREEN);
+                    DrawText("BACKUP CONCLUÍDO! TODOS OS PENDRIVES COLETADOS!", 200, 300, 30, GREEN);
                     DrawText("Pressione ESC para sair", 380, 350, 20, WHITE);
                 }
 
-            EndDrawing();
-        }
+        EndDrawing();
+    }
     
 
     // Libera o que sobrou do ultimo andar carregado (os anteriores ja foram

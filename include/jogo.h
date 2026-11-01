@@ -45,7 +45,7 @@ typedef struct Item {
 typedef struct {
     Posicao posicao;
     const char *nome;
-    const char *pegunta;
+    const char *pergunta;
     const char *resposta;
     bool ajudado;
 }Professor;
@@ -72,6 +72,17 @@ typedef struct Robo {
     struct Robo *next;
 } Robo;
 
+typedef enum {
+    TELA_NORMAL,
+    TELA_QUIZ
+} TelaJogo;
+
+typedef enum {
+    FEEDBACK_NENHUM,
+    FEEDBACK_ACERTOU,
+    FEEDBACK_ERROU
+} EstadoFeedback;
+
 // --- 7. ESTADO GERAL DO JOGO ---
 typedef struct {
     Mapa mapa;
@@ -80,7 +91,9 @@ typedef struct {
     Robo *robos;     
     Professor professor;  
     int andarAtual;
-    int telaAtual;        
+    TelaJogo telaAtual;
+    EstadoFeedback estadoFeedback;
+    double tempoInicioFeedback;
     int modoVisao;        
 } Jogo;
 
