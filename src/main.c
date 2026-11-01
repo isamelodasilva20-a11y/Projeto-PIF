@@ -34,7 +34,7 @@ int main(void) {
             if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_ESQUERDA);
             if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) movimentar_jogador(&jogo.jogador, &jogo.mapa, DIR_DIREITA);
 
-                coletar_item(&lista_itens, &jogo.jogador);
+                coletar_item(&jogo.itens, &jogo.jogador);
 
                 if (verificar_interacao_professor(&jogo.jogador, &jogo.professor)) {
                     jogo.telaAtual = TELA_QUIZ;
@@ -46,7 +46,7 @@ int main(void) {
                 int naEscada = jogo.jogador.posicao.linha == jogo.mapa.saida.linha &&
                                jogo.jogador.posicao.coluna == jogo.mapa.saida.coluna;
 
-                if(verificar_vitoria(lista_itens)){
+                if(verificar_vitoria(jogo.itens)){
                     if(jogo.andarAtual < TOTAL_ANDARES){
                         // Ainda ha andares acima: carrega o proximo (se o arquivo falhar, encerra o jogo)
                         if(!mapaCarregarAndar(&jogo, jogo.andarAtual + 1)) break;
@@ -68,7 +68,7 @@ int main(void) {
                 desenharSaida2D(&jogo.mapa, 24, verificar_vitoria(jogo.itens)); // verde = liberada
                 desenharJogador2D(&jogo.jogador, 24);
                 desenhar_professor(&jogo.professor, 24);
-                desenhar_item(lista_itens, 24);
+                desenhar_item(jogo.itens, 24);
 
                 // HUD na faixa abaixo do mapa (25 linhas * 24px = 600px, a janela tem 640px)
                 // Mostra o andar atual e quantas baterias faltam; quando zera, avisa para ir a escada
